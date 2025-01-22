@@ -9,6 +9,7 @@ import bcrypt from 'bcrypt';
 
 let nameMine = '';
 let coaltype='';
+let mineLocation='';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -18,7 +19,7 @@ const port = 5000;
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static(join(__dirname, '../../client/build')));
+app.use(express.static(join(__dirname, '../client/build')));
 
 // Initialize SQLite database
 let db;
@@ -86,9 +87,10 @@ app.post("/inputfromuser", async (req, res) => {
   const { mineName, mineType, mineSize, location,coalType, excavationAmount, transport, equipment } = req.body;
 
   // Validate required fields
-  if (!mineName || !mineType || !mineSize || !location || !excavationAmount ||!coalType) {
-    return res.status(400).json({ message: "Mine details are required." });
+  if (!mineName || !mineType || !mineSize || !location || !excavationAmount || !coalType || !equipment) {
+    return res.status(400).json({ message: " Fill All The Details." });
   }
+  mineLocation=location;
   nameMine = mineName;
   coaltype=coalType;
   if (!Array.isArray(transport) || !Array.isArray(equipment)) {
@@ -131,7 +133,12 @@ app.get("/Afforestation", async (req, res) => {
   }
 });
 
-
+app.get('/report',async (res,req)=>
+{
+  const forest=await db.get("SELECT * FROM ForestData where state=? ",mineLocation);
+  console.log(forest);
+  req.status(200).json({forest});
+})
 
 // Catch-all route for React app
 app.get('*', (req, res) => {
